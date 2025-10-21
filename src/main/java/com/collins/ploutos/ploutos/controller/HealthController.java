@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/health")
@@ -20,6 +21,7 @@ public class HealthController {
         response.put("timestamp", LocalDateTime.now().toString());
         response.put("service", "Ploutos API");
         response.put("version", "1.0.0");
+        response.put("id", UUID.randomUUID());
         
         return ResponseEntity.ok(response);
     }
