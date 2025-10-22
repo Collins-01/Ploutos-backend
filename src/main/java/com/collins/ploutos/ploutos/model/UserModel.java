@@ -144,16 +144,7 @@ public class UserModel {
         return Objects.hash(id, username, email);
     }
 
-    // toString
-    @Override
-    public String toString() {
-        return "UserModel{" +
-                "id=" + id +
-                ", username='" + username + '\'' +
-                ", email='" + email + '\'' +
-                ", role=" + role +
-                '}';
-    }
+  
 
     // Builder pattern
     public static Builder builder() {
