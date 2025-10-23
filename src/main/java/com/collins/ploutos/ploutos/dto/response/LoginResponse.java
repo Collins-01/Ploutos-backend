@@ -1,5 +1,7 @@
 package com.collins.ploutos.ploutos.dto.response;
 
+import com.collins.ploutos.ploutos.model.UserModel;
+
 public class LoginResponse {
     private String token;
     private String type;

@@ -2,7 +2,7 @@
 package com.collins.ploutos.ploutos.repository;
 
 import com.collins.ploutos.ploutos.model.UserModel;
-import com.collins.ploutos.ploutos.model.UserRole;
+import com.collins.ploutos.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

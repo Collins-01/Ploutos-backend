@@ -2,7 +2,7 @@ package com.collins.ploutos.ploutos.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import com.collins.ploutos.ploutos.model.UserModel;
-import com.collins.ploutos.ploutos.model.UserRole;
+import com.collins.ploutos.enums.UserRole;
 import com.collins.ploutos.ploutos.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Autowired // Inject the UserRepository dependency
+    @Autowired // Inject the UserRepositoryß dependency
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -47,11 +47,6 @@ public class UserService {
     // Read
     public Optional<UserModel> getUserById(Long id) {
         return userRepository.findById(id);
-    }
-
-    public Optional<UserModel> getUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found with username: " + username));
     }
 
     public Optional<UserModel> getUserByEmail(String email) {

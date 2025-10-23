@@ -1,5 +1,7 @@
 package com.collins.ploutos.ploutos.model;
 
+import com.collins.ploutos.enums.UserRole;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -193,8 +195,4 @@ public class UserModel {
             return user;
         }
     }
-}
-
-enum UserRole {
-    USER, ADMIN
 }
