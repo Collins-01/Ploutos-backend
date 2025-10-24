@@ -1,35 +1,63 @@
 package com.collins.ploutos.ploutos.controller;
 
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.collins.ploutos.ploutos.service.UserService;
-import com.collins.ploutos.ploutos.model.UserModel;
 import com.collins.ploutos.ploutos.dto.request.LoginRequest;
-import java.util.HashMap;
+import com.collins.ploutos.ploutos.dto.response.LoginResponse;
+import com.collins.ploutos.ploutos.dto.request.RegisterRequest;
+import com.collins.ploutos.ploutos.model.UserModel;
+import com.collins.ploutos.ploutos.security.CustomUserDetailsService;
+import com.collins.ploutos.ploutos.service.UserService;
+import com.collins.ploutos.ploutos.util.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 import java.util.Map;
-import java.util.UUID;
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthenticationController {
 
     @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
+
+    @Autowired
     private UserService userService;
-    
+
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("status", "UP");
-        data.put("timestamp", LocalDateTime.now().toString());
-        data.put("service", "Ploutos API");
-        data.put("version", "1.0.0");
-        data.put("id", UUID.randomUUID());
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("data", data);
-        
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+        // Authenticate user
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getEmail(),
+                        loginRequest.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        // Generate JWT token
+        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        final String jwt = jwtUtil.generateToken(userDetails);
+
+        // Get user details
+        UserModel user = userService.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Create and return the response
+        LoginResponse response = new LoginResponse(jwt, "Bearer", user);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest registerRequest) {
+        return ResponseEntity.ok(userService.save(registerRequest));
     }
 }

@@ -1,23 +1,28 @@
 package com.collins.ploutos.ploutos.dto.request;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
-    @Email(message = "a valid email is required")
+
+    @NotBlank(message = "Email is required")
+    @Email(message = "A valid email is required")
     private String email;
 
-    @Min(value = 6, message = "password must be at least 6 characters long")
+    @NotBlank(message = "Password is required")
     private String password;
 
+    // Default constructor
     public LoginRequest() {
     }
 
+    // All-args constructor
     public LoginRequest(String email, String password) {
         this.email = email;
         this.password = password;
     }
 
+    // Getters and Setters
     public String getEmail() {
         return email;
     }

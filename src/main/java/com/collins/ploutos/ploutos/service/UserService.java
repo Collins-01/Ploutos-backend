@@ -9,7 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.collins.ploutos.ploutos.dto.request.RegisterRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -89,5 +92,32 @@ public class UserService {
 
     public boolean existsByEmail(String email) {
         return userRepository.findByEmail(email).isPresent();
+    }
+
+    public Optional<UserModel> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    public Map<String, Object> save(RegisterRequest registerRequest) {
+        if (existsByEmail(registerRequest.getEmail())) {
+            throw new RuntimeException("Email already in use");
+        }
+
+        UserModel user = new UserModel();
+        user.setEmail(registerRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
+        user.setRole(UserRole.valueOf(registerRequest.getRole()));
+        user.setFirstName(registerRequest.getFirstName());
+        user.setLastName(registerRequest.getLastName());
+        user.setPhoneNumber(registerRequest.getPhoneNumber());
+        user.setUsername(registerRequest.getUsername());
+        user.setIsActive(true);
+
+        UserModel savedUser = userRepository.save(user);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "User registered successfully");
+        response.put("user", savedUser);
+        return response;
     }
 }
