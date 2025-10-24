@@ -6,6 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import java.time.LocalDateTime;
 
 import java.util.Objects;
 
@@ -43,12 +46,21 @@ public class UserModel {
     private String phoneNumber;
 
     @Column(nullable = false)
-    private Boolean isActive;
+    private Boolean active; // Changed from isActive to active
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         UserModel user = (UserModel) o;
         return Objects.equals(id, user.id) &&
                 Objects.equals(username, user.username) &&

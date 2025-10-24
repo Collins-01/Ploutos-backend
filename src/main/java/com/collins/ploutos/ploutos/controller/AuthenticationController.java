@@ -14,8 +14,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import com.collins.ploutos.ploutos.dto.response.UserResponse;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -33,31 +35,29 @@ public class AuthenticationController {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-        // Authenticate user
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getEmail(),
-                        loginRequest.getPassword()));
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest registerRequest) {
+        UserModel user = userService.register(registerRequest);
+        UserResponse userResponse = UserResponse.fromUserModel(user);
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // Generate JWT token
-        final UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        final String jwt = jwtUtil.generateToken(userDetails);
-
-        // Get user details
-        UserModel user = userService.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // Create and return the response
-        LoginResponse response = new LoginResponse(jwt, "Bearer", user);
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", userResponse);
+        response.put("message", "User registered successfully");
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody RegisterRequest registerRequest) {
-        return ResponseEntity.ok(userService.save(registerRequest));
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
+        UserModel user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+        UserResponse userResponse = UserResponse.fromUserModel(user);
+
+        // Generate JWT token if needed
+        // String token = jwtUtil.generateToken(user);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("user", userResponse);
+        response.put("message", "Login successful");
+        // response.put("token", token); // Uncomment when JWT is implemented
+        return ResponseEntity.ok(response);
     }
 }

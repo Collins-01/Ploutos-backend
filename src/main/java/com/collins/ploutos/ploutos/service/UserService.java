@@ -1,17 +1,18 @@
 package com.collins.ploutos.ploutos.service;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
 import com.collins.ploutos.ploutos.model.UserModel;
 import com.collins.ploutos.enums.UserRole;
 import com.collins.ploutos.ploutos.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
+import com.collins.ploutos.ploutos.util.JwtUtil;
 
+import com.collins.ploutos.ploutos.dto.request.LoginRequest;
 import com.collins.ploutos.ploutos.dto.request.RegisterRequest;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,103 +22,65 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
 
     @Autowired // Inject the UserRepositoryß dependency
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil,
+            AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+        this.authenticationManager = authenticationManager;
     }
 
     // Create
-    public UserModel createUser(UserModel user) {
-        if (user == null) {
+    public UserModel register(RegisterRequest request) {
+        if (request == null) {
             throw new IllegalArgumentException("User cannot be null");
         }
+        if (request.getEmail() == null || request.getPassword() == null) {
+            throw new IllegalArgumentException("Email and password are required");
+        }
 
-        if (StringUtils.hasText(user.getPassword())) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-        }
-        if (!StringUtils.hasText(user.getEmail())) {
-            throw new IllegalArgumentException("Email is required");
-        }
-        if (!StringUtils.hasText(user.getPassword())) {
-            throw new IllegalArgumentException("Password is required");
-        }
+        UserModel user = UserModel.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .username(request.getUsername())
+                .firstName(request.getFirstName())
+                .lastName(request.getLastName())
+                .phoneNumber(request.getPhoneNumber())
+                .role(UserRole.USER)
+                .active(true)
+                .build();
 
         return userRepository.save(user);
     }
 
-    // Read
-    public Optional<UserModel> getUserById(Long id) {
-        return userRepository.findById(id);
-    }
-
-    public Optional<UserModel> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public List<UserModel> getUsersByRole(UserRole role) {
-        return userRepository.findByRole(role)
-                .map(List::of)
-                .orElse(List.of());
-    }
-
-    public List<UserModel> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    // Update
-    public UserModel updateUser(UserModel user) {
-        // Verify user exists
-        Long id = user.getId();
-        if (id == null || !userRepository.existsById(id)) {
-            throw new IllegalArgumentException("User not found with id: " + id);
+    public Map<String, Object> login(LoginRequest loginRequest) {
+        /// for test, let's not use token
+        Optional<UserModel> user = userRepository.findByEmail(loginRequest.getEmail());
+        if (user.isPresent()) {
+            if (passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("user", user.orElseThrow(
+                        () -> new RuntimeException("User not found with email: " + loginRequest.getEmail())));
+                return response;
+            }
         }
-        return userRepository.save(user);
+        throw new RuntimeException("Invalid email or password");
     }
 
-    // Delete
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
-    }
+    // In UserService.java, ensure the method is public
+    public UserModel authenticate(String email, String password) {
+        UserModel user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
 
-    public void deleteAllUsers() {
-        userRepository.deleteAll();
-    }
-
-    // Additional business methods
-    public boolean existsByUsername(String username) {
-        return userRepository.findByUsername(username).isPresent();
-    }
-
-    public boolean existsByEmail(String email) {
-        return userRepository.findByEmail(email).isPresent();
-    }
-
-    public Optional<UserModel> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-
-    public Map<String, Object> save(RegisterRequest registerRequest) {
-        if (existsByEmail(registerRequest.getEmail())) {
-            throw new RuntimeException("Email already in use");
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
         }
 
-        UserModel user = new UserModel();
-        user.setEmail(registerRequest.getEmail());
-        user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
-        user.setRole(UserRole.valueOf(registerRequest.getRole()));
-        user.setFirstName(registerRequest.getFirstName());
-        user.setLastName(registerRequest.getLastName());
-        user.setPhoneNumber(registerRequest.getPhoneNumber());
-        user.setUsername(registerRequest.getUsername());
-        user.setIsActive(true);
-
-        UserModel savedUser = userRepository.save(user);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "User registered successfully");
-        response.put("user", savedUser);
-        return response;
+        return user;
     }
+
 }

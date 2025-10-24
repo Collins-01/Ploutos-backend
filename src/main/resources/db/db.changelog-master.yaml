@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - include:
+      file: classpath:db/changelog/001_create_user_table_20251024.yaml
+      relativeToChangelogFile: false
+  # Add future migrations here
+  # - include:
+  #     file: classpath:db/changelog/V2__next_migration.yaml
