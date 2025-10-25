@@ -15,6 +15,7 @@ import com.collins.ploutos.ploutos.dto.request.RegisterRequest;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import com.collins.ploutos.ploutos.exceptions.UnAuthorizedException;
 
 @Service
 @Transactional
@@ -58,26 +59,26 @@ public class UserService {
     }
 
     public Map<String, Object> login(LoginRequest loginRequest) {
-        /// for test, let's not use token
-        Optional<UserModel> user = userRepository.findByEmail(loginRequest.getEmail());
-        if (user.isPresent()) {
-            if (passwordEncoder.matches(loginRequest.getPassword(), user.get().getPassword())) {
-                Map<String, Object> response = new HashMap<>();
-                response.put("user", user.orElseThrow(
-                        () -> new RuntimeException("User not found with email: " + loginRequest.getEmail())));
-                return response;
-            }
+        try {
+            // This will throw UnauthorizedException if authentication fails
+            UserModel user = authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("user", user);
+            response.put("message", "Login successful");
+            return response;
+        } catch (UnAuthorizedException e) {
+            // Re-throw to be handled by the global exception handler
+            throw e;
         }
-        throw new RuntimeException("Invalid email or password");
     }
 
-    // In UserService.java, ensure the method is public
     public UserModel authenticate(String email, String password) {
         UserModel user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                .orElseThrow(() -> new UnAuthorizedException("User not found with email: " + email));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
+            throw new UnAuthorizedException("Invalid email or password");
         }
 
         return user;
