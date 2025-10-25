@@ -18,6 +18,7 @@ import com.collins.ploutos.ploutos.dto.response.UserResponse;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 import java.util.HashMap;
+import com.collins.ploutos.ploutos.exceptions.UnAuthorizedException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,16 +49,20 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody LoginRequest loginRequest) {
-        UserModel user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
-        UserResponse userResponse = UserResponse.fromUserModel(user);
+        try {
+            UserModel user = userService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
+            UserResponse userResponse = UserResponse.fromUserModel(user);
 
-        // Generate JWT token if needed
-        // String token = jwtUtil.generateToken(user);
+            // Generate JWT token if needed
+            // String token = jwtUtil.generateToken(user);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("user", userResponse);
-        response.put("message", "Login successful");
-        // response.put("token", token); // Uncomment when JWT is implemented
-        return ResponseEntity.ok(response);
+            Map<String, Object> response = new HashMap<>();
+            response.put("user", userResponse);
+            response.put("message", "Login successful");
+            // response.put("token", token); // Uncomment when JWT is implemented
+            return ResponseEntity.ok(response);
+        } catch (UnAuthorizedException e) {
+            throw e;
+        }
     }
 }

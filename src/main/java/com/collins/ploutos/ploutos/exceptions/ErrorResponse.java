@@ -1,26 +1,58 @@
 package com.collins.ploutos.ploutos.exceptions;
+
 import org.springframework.http.HttpStatus;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
 public class ErrorResponse {
-    private int statusCode;
-    private String status;
+    private LocalDateTime timestamp;
+    private int status;
+    private String error;
     private String message;
-    private long timestamp;
     private String path;
+    private Map<String, String> errors;
 
-    public ErrorResponse(int statusCode, String message, long timestamp, String path) {
-        this.statusCode = statusCode;
-        this.status = HttpStatus.valueOf(statusCode).name();
-        this.message = message;
+    public ErrorResponse() {
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public ErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path) {
+        this(timestamp, status, error, message, path, null);
+    }
+
+    public ErrorResponse(LocalDateTime timestamp, int status, String error, String message, String path,
+            Map<String, String> errors) {
         this.timestamp = timestamp;
+        this.status = status;
+        this.error = error;
+        this.message = message;
         this.path = path;
+        this.errors = errors != null ? errors : new HashMap<>();
     }
 
-    public int getStatusCode() {
-        return statusCode;
+    public LocalDateTime getTimestamp() {
+        return timestamp;
     }
 
-    public void setStatusCode(int statusCode) {
-        this.statusCode = statusCode;
+    public void setTimestamp(LocalDateTime timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
     }
 
     public String getMessage() {
@@ -31,14 +63,6 @@ public class ErrorResponse {
         this.message = message;
     }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
     public String getPath() {
         return path;
     }
@@ -47,11 +71,18 @@ public class ErrorResponse {
         this.path = path;
     }
 
-    public String getStatus() {
-        return status;
+    public Map<String, String> getErrors() {
+        return errors;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setErrors(Map<String, String> errors) {
+        this.errors = errors;
     }
+
+    @Override
+    public String toString() {
+        return "ErrorResponse [timestamp=" + timestamp + ", status=" + status + ", error=" + error + ", message="
+                + message + ", path=" + path + ", errors=" + errors + "]";
+    }
+
 }

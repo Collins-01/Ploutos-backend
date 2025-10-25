@@ -1,10 +1,9 @@
 package com.collins.ploutos.ploutos.exceptions;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import com.collins.ploutos.ploutos.exceptions.BaseException;
 
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public class NotFoundException extends RuntimeException {
+public class NotFoundException extends BaseException {
     public NotFoundException(String message) {
-        super(message);
+        super(message, HttpStatus.NOT_FOUND);
     }
 }
