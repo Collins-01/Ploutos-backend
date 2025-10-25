@@ -1,95 +1,93 @@
 package com.collins.ploutos.ploutos.util;
 
-import com.collins.ploutos.ploutos.config.JwtProperties;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SignatureException;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
-
-import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import javax.crypto.SecretKey;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    
-    private final JwtProperties jwtProperties;
-    private final Key signingKey;
 
-    public JwtUtil(JwtProperties jwtProperties) {
-        this.jwtProperties = jwtProperties;
-        this.signingKey = createSigningKey(jwtProperties.getSecret());
-    }
+    @Value("${jwt.secret}")
+    private String secret;
 
-    private Key createSigningKey(String secret) {
-        // Ensure the secret is at least 256 bits (32 bytes) for HS256
-        byte[] keyBytes = secret.getBytes();
-        if (keyBytes.length < 32) {
-            // If the key is too short, pad it with zeros
-            byte[] paddedKey = new byte[32];
-            System.arraycopy(keyBytes, 0, paddedKey, 0, Math.min(keyBytes.length, 32));
-            return Keys.hmacShaKeyFor(paddedKey);
-        }
+    @Value("${jwt.expiration}")
+    private Long expiration;
+
+    // Get the signing key from the secret
+    private SecretKey getSignKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, userDetails.getUsername());
-    }
-
-    private String createToken(Map<String, Object> claims, String subject) {
+    /// Creates a JWT token
+    /// the claims are the additional information you want to add to the token
+    /// the subject is the user id
+    ///
+    public String createToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getExpiration()))
-                .signWith(signingKey, SignatureAlgorithm.HS256)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignKey())
                 .compact();
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        try {
-            final String username = extractUsername(token);
-            return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-        } catch (JwtException | IllegalArgumentException e) {
-            return false;
-        }
+    // Parse and extract all claims from token
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .verifyWith(getSignKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
+    // Extract any claim from token
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(signingKey)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e) {
-            throw new JwtException("Invalid JWT token: " + e.getMessage(), e);
-        }
+    // extracts only the username from the token
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 
-    private boolean isTokenExpired(String token) {
-        try {
-            return extractExpiration(token).before(new Date());
-        } catch (JwtException | IllegalArgumentException e) {
-            return true;
-        }
+    // extracts only the expiration date from the token
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
+
+    /// checks if the token has expires.
+    /// The expiry date has to be before the current date.
+    private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    /// checks if the token is valid
+    /// The username from the extracted token must be the same with the username
+    /// existing in our state.
+    /// The token must not have expired.
+    public boolean validateToken(String token, UserDetails userDetails) {
+        /// extract the username from the token
+        final String username = extractUsername(token);
+        /// check if the username from the token is the same as the username from the
+        /// userDetails
+        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+    }
+
+    // Generate token for a user
+    public String generateToken(UserDetails userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        return createToken(claims, userDetails.getUsername());
+    }
+
 }
