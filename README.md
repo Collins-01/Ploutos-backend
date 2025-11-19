@@ -5,6 +5,11 @@
 ## 💡 Project Overview
 Ploutos is a modern, intelligent personal finance tracker built with Spring Boot that empowers users to take control of their money through structured tracking, smart insights, and automated financial summaries.
 
+## 🗄️ Database Design
+The following diagram illustrates the database schema architecture for Ploutos:
+
+![Database Design](db_design.png)
+
 ## 🚀 Features
 
 ### 👤 User Management
