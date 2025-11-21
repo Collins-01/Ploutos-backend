@@ -53,7 +53,10 @@ public class UserModel {
     @JoinColumn(name = "profile_id")  // Specifies the foreign key column in User table
     private ProfileModel profile;
 
-    @ManyToOne(optional = true) // Many-to-many relationship, "users" is the owner side
-    @JoinColumn(nullable = true, name = "category_id")
+    @OneToMany(mappedBy = "user") // One-to-many relationship, AccountModel is the owner side
     private List<CategoryModel> categories;
+
+
+    @OneToMany(mappedBy = "user")
+    private List<AccountModel> accounts;
 }

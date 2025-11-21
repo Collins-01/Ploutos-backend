@@ -1,6 +1,5 @@
 package com.collins.ploutos.ploutos.model;
 
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,37 +11,35 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "categories")
-public class CategoryModel {
+@Table(name = "accounts")
+public class AccountModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long categoryId;
+    private Long id;
+
+    @Column(nullable = false, name = "account_type")
+    private String accountType;
 
     @Column(nullable = false)
-    private String name; // this the name of the category
+    private String currency;
 
-    @Column(nullable = false, name = "is_system")
-    private boolean isSystem;
-
-
-    @Column(nullable = true, name = "parent_id")
-    private Long parentId;
-
-
-    @Column(nullable = true, name = "created_at")
+    @Column(nullable = false, name = "created_at")
     private LocalDateTime createdAt;
+
 
     @PrePersist
     public void prePersist() {
         createdAt = LocalDateTime.now();
     }
 
-
     //* Relationships
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(
+            optional = true,
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL
+
+    )
     @JoinColumn(name = "user_id")
-    private UserModel user;
-
-
+    private UserModel user; // a  user can have many accounts
 }
