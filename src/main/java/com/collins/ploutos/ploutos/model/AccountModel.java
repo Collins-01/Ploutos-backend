@@ -2,6 +2,7 @@ package com.collins.ploutos.ploutos.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
+@Builder
 @NoArgsConstructor
 @Entity
 @Table(name = "accounts")
@@ -18,10 +20,10 @@ public class AccountModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, name = "account_type")
+    @Column(nullable = false, name = "account_type") // (debit, credit, cash, loan, savings, etc.)
     private String accountType;
 
-    @Column(nullable = false)
+    @Column(nullable = false,length = 3)
     private String currency;
 
     @Column(nullable = false, name = "created_at")
