@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.time.LocalDateTime;
 
 @Data
@@ -22,16 +23,17 @@ public class UserModel {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "auth_provider")
     private String authProvider;
 
     private String password;
 
-    @Column(nullable = false, updatable = false)
+    @Column(nullable = false, updatable = false, name = "created_at")
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "updated_at")
     private LocalDateTime updatedAt;
+
 
     @PrePersist
     protected void onCreate() {
@@ -43,4 +45,10 @@ public class UserModel {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
+
+    //* Relationships
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "profile_id")  // Specifies the foreign key column in User table
+    private ProfileModel profile;
 }
