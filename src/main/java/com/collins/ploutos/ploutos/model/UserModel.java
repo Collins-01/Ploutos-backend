@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -51,4 +52,8 @@ public class UserModel {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "profile_id")  // Specifies the foreign key column in User table
     private ProfileModel profile;
+
+    @ManyToOne(optional = true) // Many-to-many relationship, "users" is the owner side
+    @JoinColumn(nullable = true, name = "category_id")
+    private List<CategoryModel> categories;
 }
