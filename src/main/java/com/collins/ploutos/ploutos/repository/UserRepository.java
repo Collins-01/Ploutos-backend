@@ -1,19 +1,10 @@
 package com.collins.ploutos.ploutos.repository;
 
-import com.collins.ploutos.ploutos.model.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-import java.util.Optional;
+import com.collins.ploutos.ploutos.model.UserModel;
 
 
-
-@Repository
-public interface UserRepository extends JpaRepository<UserModel, Long> {  // Changed UUID to Long
-
-    Optional<UserModel> findByEmail(String email);
-
+public interface UserRepository extends JpaRepository<UserModel, Long> {
+    /// checks if this email exist
     boolean existsByEmail(String email);
-
-
 }
