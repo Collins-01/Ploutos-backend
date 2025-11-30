@@ -21,7 +21,26 @@ You can use the included `Makefile` to run common tasks.
 
 - Java 17
 - Maven
-- Docker (optional, for containerization)
+- Docker & Docker Compose (for database)
+
+### Database Setup
+
+The auth service requires a PostgreSQL database. Use Docker Compose to start it:
+
+```bash
+# Start PostgreSQL, Redis, and pgAdmin
+docker-compose up -d
+
+# Verify services are running
+docker-compose ps
+```
+
+**Database Services:**
+- **PostgreSQL**: `localhost:5432` (Database: `ploutos_auth`)
+- **Redis**: `localhost:6379` (Caching)
+- **pgAdmin**: `http://localhost:5050` (Database UI)
+
+For detailed database setup and management, see [DATABASE.md](DATABASE.md).
 
 ### Commands
 

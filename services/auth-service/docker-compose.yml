@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Auth Service
+  postgres:
+    image: postgres:15-alpine
+    container_name: ploutos-auth-db
+    environment:
+      POSTGRES_DB: ploutos_auth
+      POSTGRES_USER: ploutos_user
+      POSTGRES_PASSWORD: ploutos_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - ploutos-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ploutos_user -d ploutos_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Caching (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: ploutos-auth-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ploutos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: redis-server --appendonly yes
+
+  # pgAdmin for Database Management (Optional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: ploutos-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@ploutos.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - ploutos-network
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  ploutos-network:
+    driver: bridge
