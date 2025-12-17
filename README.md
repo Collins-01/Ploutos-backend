@@ -115,10 +115,4 @@ This is a monorepo project. When contributing:
 4. Update relevant README files
 5. Ensure all tests pass before committing
 
-## 📝 License
 
-[Add your license information here]
-
-## 📧 Contact
-
-[Add your contact information here]
